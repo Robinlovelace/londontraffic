@@ -30,10 +30,10 @@ printf 'export const AUTH_HASH = "%s";\n' "$HASH" > netlify/edge-lib/auth_hash.t
 
 export PATH="$PATH:$HOME/.bun/bin"
 
-# Env var is the primary credential source; if the API accepts it, the baked
-# hash is only a fallback. Hash is set on the site either way.
-netlify env:set BASIC_AUTH_CREDENTIALS "$CREDENTIALS" --site "$SITE_ID" >/dev/null 2>&1 \
-  || echo "note: env var not set on this site; baked hash will be used" >&2
+# Credentials are baked into the deploy via the SHA-256 hash only. Netlify env
+# vars are avoided on purpose: env:set here applies the variable to BOTH sites
+# (team-scoped), which cannot carry per-site credentials. The edge function
+# fails closed when the hash is absent.
 
 npm run "build:$SCOPE"
 
