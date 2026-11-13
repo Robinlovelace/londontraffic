@@ -1,5 +1,6 @@
 <script lang="ts">
   import { base } from '$app/paths';
+  import { SCOPE } from '$lib/scope';
 </script>
 
 <svelte:head>
@@ -9,7 +10,7 @@
 <div class="min-h-screen bg-gray-50 px-6 py-6">
   <div class="mx-auto max-w-3xl space-y-4">
     <div class="space-y-1">
-      <a href="{base}/" class="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline">← All regions</a>
+      {#if SCOPE === 'national'}<a href="{base}/" class="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline">← All regions</a>{/if}
       <h1 class="text-2xl font-bold text-gray-900">About these estimates</h1>
     </div>
 
@@ -17,9 +18,9 @@
       <p>
         This site shows modelled average annual daily traffic (AADT) estimates for
         <strong>cars</strong> and <strong>heavy vehicles</strong> (HGVs, buses and coaches) on every
-        motor road link in England, split by Government Office Region. The estimates come from the
-        <strong>Critical Safety Issues (CSIS) pipeline</strong>: an open, reproducible network
-        modelling pipeline that assigns origin-destination demand to the road network with
+        motor road link in England, split by Government Office Region. The estimates come from an
+        open, reproducible network modelling pipeline that assigns origin-destination demand to the
+        road network with
         <a href="https://github.com/atfutures/netweld" class="text-blue-700 hover:underline" target="_blank" rel="noopener noreferrer">netweld</a>,
         <a href="https://github.com/atf-lab/osmactive" class="text-blue-700 hover:underline" target="_blank" rel="noopener noreferrer">osmactive</a>
         and a calibrated routing assignment, validated against DfT and council traffic counts.
@@ -47,7 +48,7 @@
         <h2 class="text-base font-semibold text-gray-900">Caveats</h2>
         <ul class="mt-1.5 list-disc space-y-1 pl-5">
           <li>Estimates are as good as the open demand data and network attributes behind them; expect uncertainty on minor roads and at region edges.</li>
-          <li>This is a demonstration of the national traffic-estimate layer. The full CSIS pipeline also estimates walking and cycling volumes and flags safety issues.</li>
+          <li>This is a demonstration of the national traffic-estimate layer. The full pipeline also estimates walking and cycling volumes and flags safety issues.</li>
           <li>Data vintage and build date are shown in the map's info (ⓘ) button.</li>
         </ul>
       </div>

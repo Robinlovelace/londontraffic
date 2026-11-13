@@ -89,7 +89,7 @@
 
       <div class="flex-shrink-0 sticky bottom-0 bg-white pt-3 -mx-6 px-6 border-t border-gray-200">
         <p class="text-xs text-gray-400 pt-0.5">London Traffic {__RELEASE_TAG__}</p>
-        <p class="text-xs text-gray-400 pt-1">Modelled national traffic estimates from the <a href="{base}/about/" class="hover:text-gray-600 hover:underline">CSIS pipeline</a>, by <a href="https://www.leeds.ac.uk" target="_blank" rel="noopener noreferrer" class="hover:text-gray-600 hover:underline">University of Leeds</a></p>
+        <p class="text-xs text-gray-400 pt-1">Modelled traffic estimates, by <a href="https://www.leeds.ac.uk" target="_blank" rel="noopener noreferrer" class="hover:text-gray-600 hover:underline">University of Leeds</a></p>
       </div>
     </div>
   {/snippet}

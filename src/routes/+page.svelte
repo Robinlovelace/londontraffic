@@ -38,7 +38,7 @@
       <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 class="text-2xl font-bold text-gray-900">London Traffic: national traffic estimates</h1>
-          <p class="mt-1 text-sm text-gray-600">Modelled average daily traffic (AADT) for cars and heavy vehicles on every road link in England, from the CSIS pipeline. Pick a region to explore:</p>
+          <p class="mt-1 text-sm text-gray-600">Modelled average daily traffic (AADT) for cars and heavy vehicles on every road link in England. Pick a region to explore:</p>
         </div>
         <a href="https://www.leeds.ac.uk/" target="_blank" rel="noopener noreferrer" class="shrink-0">
           <img src="{base}/university-of-leeds-logo.svg" alt="University of Leeds" class="h-10 w-auto" />
