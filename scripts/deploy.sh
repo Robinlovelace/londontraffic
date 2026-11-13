@@ -22,22 +22,27 @@ esac
 AUTH_FILE="${AUTH_FILE:-$HOME/.config/londontraffic/auth-$SCOPE}"
 [ -s "$AUTH_FILE" ] || { echo "auth file missing or empty: $AUTH_FILE" >&2; exit 1; }
 chmod 600 "$AUTH_FILE" 2>/dev/null || true
-
-CREDENTIALS="$(tr -d '\r\n' < "$AUTH_FILE")"
-HASH="$(printf %s "$CREDENTIALS" | sha256sum | cut -d' ' -f1)"
-mkdir -p netlify/edge-lib
-printf 'export const AUTH_HASH = "%s";\n' "$HASH" > netlify/edge-lib/auth_hash.ts
-
 export PATH="$PATH:$HOME/.bun/bin"
 
-# Credentials are baked into the deploy via the SHA-256 hash only. Netlify env
-# vars are avoided on purpose: env:set here applies the variable to BOTH sites
-# (team-scoped), which cannot carry per-site credentials. The edge function
-# fails closed when the hash is absent.
+# Credentials are baked into the deploy via the SHA-256 hash only (see below).
+# Netlify env vars are avoided on purpose: env:set here applies the variable to
+# BOTH sites (team-scoped), which cannot carry per-site credentials. The edge
+# function fails closed when the hash is absent.
 
-# Per-scope build dir so london and national deploys can run in parallel.
+# Per-scope build dir so london and national builds can run in parallel.
 BUILD_DIR="build-$SCOPE"
 rm -rf "$BUILD_DIR"
 BUILD_DIR="$BUILD_DIR" npm run "build:$SCOPE"
 
+# The auth hash file is SHARED between the two deploys and the edge bundle is
+# snapshotted at deploy time, so the (hash write + deploy) phase must not
+# overlap between concurrent london/national deploys. Builds above stay
+# parallel; this critical section serialises them.
+exec 9>netlify/.deploy.lock
+flock 9
+CREDENTIALS="$(tr -d '\r\n' < "$AUTH_FILE")"
+HASH="$(printf %s "$CREDENTIALS" | sha256sum | cut -d' ' -f1)"
+mkdir -p netlify/edge-lib
+printf 'export const AUTH_HASH = "%s";\n' "$HASH" > netlify/edge-lib/auth_hash.ts
 netlify deploy --site "$SITE_ID" --dir "$BUILD_DIR" --prod --no-build --timeout 1800
+rm -f netlify/.deploy.lock
