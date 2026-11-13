@@ -68,12 +68,12 @@ Deploy the matching site (site ids in Netlify; both created with the netlify
 CLI, no auth):
 
 ```bash
-# London site (e9aae024-5803-4555-99e7-cb86f010160f), ~110 MB upload
-netlify deploy --site e9aae024-5803-4555-99e7-cb86f010160f --dir build --prod --no-build
-
-# National site (991ba7c8-8179-45b8-8d82-4a4a054bf60a), ~2 GB upload
-netlify deploy --site 991ba7c8-8179-45b8-8d82-4a4a054bf60a --dir build --prod --no-build
+scripts/deploy.sh london    # build-london/ -> londontrafficdemo (110 MB, ~1 min)
+scripts/deploy.sh national  # build-national/ -> nationaltrafficdemo (~30 s: only changed files upload)
 ```
+
+Each scope builds into its own directory (`build-london/`, `build-national/`),
+so the two deploys can run in parallel. Both are behind basic auth; see above.
 
 `.pmtiles` files need HTTP range-request serving, which Netlify does by
 default; `netlify.toml` adds a 1-hour cache header for them.
