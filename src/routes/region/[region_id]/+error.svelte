@@ -1,10 +1,11 @@
 <script lang="ts">
   import { page } from '$app/stores';
+  import { base } from '$app/paths';
   import { ArrowLeft } from 'lucide-svelte';
 </script>
 
 <svelte:head>
-  <title>Region unavailable | Counterflow</title>
+  <title>Region unavailable | London Traffic</title>
 </svelte:head>
 
 <div class="min-h-screen bg-gray-50 px-6 py-10">
@@ -19,11 +20,11 @@
     </p>
     <div class="mt-6">
       <a
-        href="/"
+        href="{base}/"
         class="inline-flex items-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition"
       >
         <ArrowLeft size={16} class="mr-2" />
-        Back to all regions
+        Back
       </a>
     </div>
   </div>

@@ -16,15 +16,26 @@
   const fmt = (v: number | null) => (v == null ? "No estimate" : Math.round(v).toLocaleString() + " veh/day");
   const lenKm = $derived(p.length_m != null ? (p.length_m / 1000).toFixed(2) + " km" : null);
 
-  // First coordinate of the line geometry, for the OSM / Street View links.
+  // First non-empty line's midpoint: a vertex along the road, not an endpoint
+  // junction or tile-clip edge, with non-finite coordinates rejected.
   const popupCenter = $derived.by(() => {
     const c: any = feature?.geometry?.coordinates;
+    const firstFinitePt = (line: any): [number, number] | null => {
+      if (!Array.isArray(line)) return null;
+      const pt = line[Math.floor(line.length / 2)];
+      return Array.isArray(pt) && Number.isFinite(pt[0]) && Number.isFinite(pt[1]) ? [pt[0], pt[1]] : null;
+    };
     if (!Array.isArray(c)) return null;
-    if (typeof c[0] === "number" && typeof c[1] === "number") return [c[0], c[1]] as [number, number];
-    if (Array.isArray(c[0]) && typeof c[0][0] === "number" && typeof c[0][1] === "number") return [c[0][0], c[0][1]] as [number, number];
-    if (Array.isArray(c[0]) && Array.isArray(c[0][0]) && typeof c[0][0][0] === "number" && typeof c[0][0][1] === "number") return [c[0][0][0], c[0][0][1]] as [number, number];
-    if (Array.isArray(c[0]) && Array.isArray(c[0][0]) && Array.isArray(c[0][0][0]) && typeof c[0][0][0][0] === "number" && typeof c[0][0][0][1] === "number") return [c[0][0][0][0], c[0][0][0][1]] as [number, number];
-    return null;
+    if (typeof c[0] === "number" && Number.isFinite(c[0]) && Number.isFinite(c[1])) return [c[0], c[1]] as [number, number];
+    // MultiLineString: pick the first sub-line with points.
+    if (Array.isArray(c[0]?.[0]?.[0])) {
+      for (const part of c) {
+        const pt = firstFinitePt(part);
+        if (pt) return pt;
+      }
+      return null;
+    }
+    return firstFinitePt(c);
   });
 </script>
 
@@ -55,7 +66,9 @@
       </div>
     {/if}
   </div>
-  <MapButtons center={popupCenter} />
+  {#if popupCenter && detailLevel === "full"}
+    <MapButtons center={popupCenter} />
+  {/if}
   <p class="mt-1.5 border-t border-gray-100 pt-1 text-[9px] text-gray-400 leading-snug">
     Modelled AADT estimates, not counts.
   </p>

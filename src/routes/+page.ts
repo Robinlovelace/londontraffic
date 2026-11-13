@@ -1,5 +1,5 @@
 import type { PageLoad } from './$types';
-import { getRegions, getRegionManifest, displayName } from '$lib/api';
+import { getRegions, getRegionManifest } from '$lib/api';
 import { SCOPE } from '$lib/scope';
 
 // London first, then the rest alphabetically.
@@ -9,14 +9,14 @@ export const load: PageLoad = async ({ fetch }) => {
   // Single-page London deployment: '/' renders the London region map directly.
   if (SCOPE === 'london') {
     try {
-      const regions = await getRegions(fetch);
-      const region = regions[0];
-      if (!region) return { view: 'list' as const, regions: [], status: 'error' as const };
-      const manifest = await getRegionManifest(region.region_id, fetch);
+      // Single-page London deployment: '/' renders the London region map
+      // directly. Fetch the manifest for the known region id rather than
+      // relying on index.json ordering, and avoid the sequential waterfall.
+      const manifest = await getRegionManifest('gor_london', fetch);
       return {
         view: 'map' as const,
-        regionId: region.region_id,
-        regionName: displayName(region.name),
+        regionId: 'gor_london',
+        regionName: 'London',
         manifest,
         status: 'ok' as const,
       };

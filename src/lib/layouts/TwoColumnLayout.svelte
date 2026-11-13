@@ -17,12 +17,17 @@
   let showToggleHint = $state(false);
   let hintTimer: ReturnType<typeof setTimeout> | undefined;
 
+  // localStorage can throw (privacy mode, sandboxed iframes); a blocked store
+  // must not break the sidebar toggle.
+  const storageGet = (k: string): string | null => { try { return localStorage.getItem(k); } catch { return null; } };
+  const storageSet = (k: string, v: string): void => { try { localStorage.setItem(k, v); } catch { /* storage blocked */ } };
+
   function toggleSidebar() {
     if (!isSidebarOpen && showToggleHint) {
       // They found the tab — no need to ever hint again.
       showToggleHint = false;
       clearTimeout(hintTimer);
-      localStorage.setItem(TOGGLE_HINT_KEY, "1");
+      storageSet(TOGGLE_HINT_KEY, "1");
     }
     isSidebarOpen = !isSidebarOpen;
   }
@@ -34,8 +39,8 @@
     if (
       isMobile &&
       !isSidebarOpen &&
-      localStorage.getItem(ONBOARDING_KEY) !== "1" &&
-      localStorage.getItem(TOGGLE_HINT_KEY) !== "1"
+      storageGet(ONBOARDING_KEY) !== "1" &&
+      storageGet(TOGGLE_HINT_KEY) !== "1"
     ) {
       showToggleHint = true;
       // Timeout only hides for this session; the hint returns next visit
@@ -67,7 +72,7 @@
   >
     <!-- Actual Sidebar Content -->
     <div class="relative flex h-full w-full flex-col border-r border-gray-200 bg-white shadow-xl md:shadow-none">
-      <div class="h-full flex-1 overflow-y-auto p-6 scrollbar-thin scrollbar-thumb-gray-200">
+      <div class="h-full flex-1 overflow-y-auto p-6 scrollbar-thin scrollbar-thumb-gray-200" inert={!isSidebarOpen}>
         {@render sidebar()}
       </div>
 

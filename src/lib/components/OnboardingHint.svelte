@@ -19,7 +19,7 @@
     onclick={dismiss}
     class="absolute top-2 left-1/2 -translate-x-1/2 z-10 flex w-max max-w-[calc(100%-6rem)] items-center gap-1.5 rounded-xl bg-blue-600/90 px-3 py-1 text-left text-[11px] font-medium text-white shadow-lg backdrop-blur-sm"
   >
-    <span>Zoom in, choose a layer in the panel, then click a point or road for details</span>
+    <span>Zoom in, choose a mode in the panel, then click a road for details</span>
     <X size={12} />
   </button>
 {/if}

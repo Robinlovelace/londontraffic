@@ -10,7 +10,10 @@
     center?: [number, number] | null;
   }>();
 
-  const hasCenter = $derived(Array.isArray(center) && center.length === 2);
+  const hasCenter = $derived(
+    Array.isArray(center) && center.length === 2 &&
+    Number.isFinite(center[0]) && Number.isFinite(center[1])
+  );
   const svUrl = $derived(
     hasCenter
       ? `https://maps.google.com/maps?q=&layer=c&cbll=${center[1]},${center[0]}&cbp=11,0,0,0,0`
@@ -29,6 +32,7 @@
     href={svUrl}
     target="_blank"
     rel="noopener noreferrer"
+    aria-label="Open in Street View (opens in new tab)"
     class="flex items-center justify-center gap-1.5 py-1.5 px-2 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded border border-gray-200 text-[10px] font-medium transition-colors"
   >
     Street View
@@ -37,6 +41,7 @@
     href={osmUrl}
     target="_blank"
     rel="noopener noreferrer"
+    aria-label="Open in OpenStreetMap (opens in new tab)"
     class="flex items-center justify-center gap-1.5 py-1.5 px-2 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded border border-gray-200 text-[10px] font-medium transition-colors"
   >
     OpenStreetMap

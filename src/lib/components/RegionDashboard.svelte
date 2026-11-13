@@ -15,26 +15,31 @@
   let { regionId, regionName, initialCenter = [-0.1276, 51.5072], initialZoom = 11, tileVersion, regionBounds = null, manifest } = $props<{ regionId: string; regionName: string; initialCenter?: [number, number]; initialZoom?: number; tileVersion?: string; regionBounds?: [[number, number], [number, number]] | null; manifest: Manifest }>();
 
   const initParams = typeof window !== "undefined" ? new URL(window.location.href).searchParams : new URLSearchParams();
-  // A shared/deep-linked URL carries an explicit position; region auto-fit
-  // must not override it.
-  const hasUrlPosition = initParams.has("lng") || initParams.has("lat") || initParams.has("z");
+
+  const numParam = (k: string): number | null => {
+    const v = parseFloat(initParams.get(k) || "");
+    return Number.isFinite(v) ? v : null;
+  };
+  const urlLng = numParam("lng");
+  const urlLat = numParam("lat");
+  const urlZoom = numParam("z");
+  // A shared/deep-linked URL carries an explicit, valid position; region
+  // auto-fit must not override it. Malformed values fall back to defaults
+  // (NaN or out-of-range latitudes crash MapLibre at mount).
+  const hasUrlPosition =
+    urlLng !== null && urlLat !== null && urlZoom !== null && Math.abs(urlLat) <= 90;
 
   const modeParam = initParams.get("mode") || "all";
   let mode = $state(MODE_ALIASES[modeParam] ?? modeParam);
-  let mapCenter = $state<[number, number]>([
-    parseFloat(initParams.get("lng") || String(initialCenter[0])),
-    parseFloat(initParams.get("lat") || String(initialCenter[1])),
-  ]);
-  let mapZoom = $state(parseFloat(initParams.get("z") || String(initialZoom)));
-  let currentZoom = $state(parseFloat(initParams.get("z") || String(initialZoom)));
-  $effect(() => { currentZoom = mapZoom; });
+  let mapCenter = $state<[number, number]>(hasUrlPosition ? [urlLng!, urlLat!] : initialCenter);
+  let mapZoom = $state(hasUrlPosition ? urlZoom! : initialZoom);
   let nameFilter = $state(initParams.get("q") ?? ""), copied = $state(false);
 
   async function copyLink() {
     try { await navigator.clipboard.writeText(window.location.href); copied = true; setTimeout(() => (copied = false), 2000); } catch { /* clipboard blocked */ }
   }
 
-  function handleBoundsChange(_bounds: any, center: [number, number], zoom: number) { mapCenter = center; currentZoom = zoom; syncUrlState(); }
+  function handleBoundsChange(_bounds: any, center: [number, number], zoom: number) { mapCenter = center; mapZoom = zoom; syncUrlState(); }
 
   let urlSyncTimer: ReturnType<typeof setTimeout> | undefined;
   function syncUrlState() {
@@ -44,7 +49,7 @@
       const p = new URLSearchParams();
       p.set("lat", mapCenter[1].toFixed(4));
       p.set("lng", mapCenter[0].toFixed(4));
-      p.set("z", currentZoom.toFixed(1));
+      p.set("z", mapZoom.toFixed(1));
       p.set("mode", mode);
       if (nameFilter.trim()) p.set("q", nameFilter.trim());
       replaceState(`?${p.toString()}`, {});
@@ -78,7 +83,7 @@
         </div>
 
         <div class="space-y-4">
-          <Geocoder regionBounds={regionBounds} onSelect={(lng, lat) => { mapCenter = [lng, lat]; mapZoom = currentZoom = 14; syncUrlState(); }} />
+          <Geocoder regionBounds={regionBounds} onSelect={(lng, lat) => { mapCenter = [lng, lat]; mapZoom = 14; syncUrlState(); }} />
           <ModeSelector bind:value={mode} />
           <div class="space-y-1">
             <label for="name-filter" class="block text-sm font-medium text-gray-700">Road name or number</label>

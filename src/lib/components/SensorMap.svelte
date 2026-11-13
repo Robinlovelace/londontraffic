@@ -42,7 +42,6 @@
     clickedFeature: any = $state.raw(),
     popupLngLat = $state.raw(new maplibregl.LngLat(0, 0)),
     layerClickHandled = false,
-    currentZoom = $state(11),
     baseMap = $state<BasemapId>("positron"),
     basemapMenuOpen = $state(false),
     basemapInfoOpen = $state(false),
@@ -58,7 +57,6 @@
     transit: { label: "Transit", description: "OpenStreetMap standard tiles, which show transit routes", legendUrl: "https://openstreetmap.org/", style: rasterStyle(["https://tile.openstreetmap.org/{z}/{x}/{y}.png"], '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors', 19) },
     cycle: { label: "Cycle", description: "CyclOSM, a cycle-oriented map with bike lanes and routes", legendUrl: "https://www.cyclosm.org/", style: rasterStyle(["https://a.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png", "https://b.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png", "https://c.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png"], '<a href="https://www.cyclosm.org/">CyclOSM</a> | Tiles: <a href="https://www.openstreetmap.fr/">OSM France</a> | Data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors', 19) },
   };
-  $effect(() => { currentZoom = zoom; });
 
   let geoMessageTimeout: ReturnType<typeof setTimeout> | undefined;
   function showGeoMessage(msg: string) {
@@ -75,10 +73,9 @@
   // Test hook: lets browser checks query rendered features.
   $effect(() => { if (map && typeof window !== "undefined") (window as any).__ltMap = map; });
   function handleMoveEnd() { if (!map) return; const b = map.getBounds(), c = map.getCenter(), z = map.getZoom(); onBoundsChange?.(b, [c.lng, c.lat], z); }
-  function handleZoom() { if (map) currentZoom = map.getZoom(); }
   function handleClick() { if (!layerClickHandled) clickedFeature = undefined; layerClickHandled = false; }
 
-  $effect(() => { if (map) { map.on("moveend", handleMoveEnd); map.on("zoom", handleZoom); map.on("click", handleClick); handleMoveEnd(); handleZoom(); return () => { map?.off("moveend", handleMoveEnd); map?.off("zoom", handleZoom); map?.off("click", handleClick); }; } });
+  $effect(() => { if (map) { map.on("moveend", handleMoveEnd); map.on("click", handleClick); handleMoveEnd(); return () => { map?.off("moveend", handleMoveEnd); map?.off("click", handleClick); }; } });
 
   let tilesLoadingTimeout: ReturnType<typeof setTimeout> | undefined;
   function handleDataLoading() {
@@ -165,9 +162,11 @@
     <ScaleControl position="bottom-left" />
     <TrafficLayers {mode} {tilesBaseUrl} {tileVersion} {nameFilter} onMouseMove={handleLayerMouseMove} onMouseLeave={handleLayerMouseLeave} onClick={handleLayerClick} />
     {#if (clickedFeature || hoveredFeature)?.geometry}
-      <Popup lnglat={popupLngLat} focusAfterOpen={false} closeButton={!!clickedFeature} closeOnClick={false} onclose={() => clickedFeature = undefined} class="text-black {hoveredFeature && !clickedFeature ? 'pointer-events-none' : ''}">
-        <PopupContent feature={clickedFeature || hoveredFeature} {mode} detailLevel={clickedFeature ? "full" : "minimal"} />
-      </Popup>
+      {#key !!clickedFeature}
+        <Popup lnglat={popupLngLat} focusAfterOpen={false} closeButton={!!clickedFeature} closeOnClick={false} onclose={() => clickedFeature = undefined} class={clickedFeature ? 'text-black' : 'text-black [&_.maplibregl-popup-content]:pointer-events-none'}>
+          <PopupContent feature={clickedFeature || hoveredFeature} {mode} detailLevel={clickedFeature ? "full" : "minimal"} />
+        </Popup>
+      {/key}
     {/if}
   </MapLibre>
   {#if basemapMenuOpen}

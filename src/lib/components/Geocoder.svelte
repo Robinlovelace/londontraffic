@@ -11,17 +11,21 @@
   let showDropdown = $state(false);
 
   let timeout: ReturnType<typeof setTimeout> | undefined;
+  let abortController: AbortController | undefined;
 
   function handleSearch() {
     status = '';
+    // Always cancel a pending search first, even when clearing the input.
+    if (timeout) clearTimeout(timeout);
+    abortController?.abort();
     if (query.length < 3) {
       results = [];
       showDropdown = false;
       return;
     }
 
-    if (timeout) clearTimeout(timeout);
-    
+    const controller = new AbortController();
+    abortController = controller;
     timeout = setTimeout(async () => {
       loading = true;
       try {
@@ -38,7 +42,8 @@
           const vbTop = ne[1] + latBuf;
           url += `&bounded=1&viewbox=${vbLeft},${vbTop},${vbRight},${vbBottom}`;
         }
-        const resp = await fetch(url);
+        const resp = await fetch(url, { signal: controller.signal });
+        if (!resp.ok) throw new Error(`Nominatim responded ${resp.status}`);
         const seen = new Set<string>();
         results = (await resp.json()).filter((r: any) => {
           const key = `${r.display_name}|${Number(r.lat).toFixed(3)}|${Number(r.lon).toFixed(3)}`;
@@ -47,6 +52,7 @@
         status = results.length ? '' : 'No places found in this region.';
         showDropdown = results.length > 0;
       } catch (e) {
+        if ((e as Error).name === 'AbortError') return;
         status = 'Place search is unavailable. Try again later.';
         console.error('Geocoding error:', e);
       } finally {
@@ -71,7 +77,8 @@
       bind:value={query}
       oninput={handleSearch}
       onkeydown={(e: KeyboardEvent) => { if (e.key === 'Enter' && results.length > 0) selectLocation(results[0]); }}
-      placeholder="Search for a location (e.g. Leeds)..."
+      placeholder="Search for a place or postcode..."
+      aria-label="Search for a location"
       class="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm pr-10"
     />
     <div class="absolute right-3 top-2.5">

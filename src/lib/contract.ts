@@ -37,11 +37,15 @@ export const MODE_ALIASES: Record<string, string> = { vehicles: "heavy" };
 const PLAIN_CLASSES = ["motorway", "track", "cycleway", "path", "connector"];
 /** A link's popup title: "Roundhay Road (A58)", the name or number alone, else its class. */
 export function linkName(p: Record<string, any>): string | null {
-  if (p.road_class == null) return null;
-  const [name, ref] = [p.road_name, p.road_ref];
+  const name = (p.road_name ?? "").trim() || null;
+  const ref = (p.road_ref ?? "").trim() || null;
   if (name && ref) return `${name} (${ref})`;
+  // The class is only needed for the "Unnamed ..." fallback; a named link
+  // without a class is still a named link.
+  if (name || ref) return name ?? ref;
+  if (p.road_class == null) return null;
   const c = PLAIN_CLASSES.includes(p.road_class) ? p.road_class : `${p.road_class} road`;
-  return name ?? ref ?? `Unnamed ${c}`;
+  return `Unnamed ${c}`;
 }
 
 /**
@@ -50,7 +54,9 @@ export function linkName(p: Record<string, any>): string | null {
  * the per carriageway flow on the map.
  */
 export function linkFlows(p: Record<string, any>): { car: number | null; heavy: number | null; paired: boolean } {
-  const paired = p.aadt_2way_car != null && p.aadt_car != null && p.aadt_2way_car !== p.aadt_car;
+  const paired =
+    (p.aadt_2way_car != null && p.aadt_car != null && p.aadt_2way_car !== p.aadt_car) ||
+    (p.aadt_2way_heavy != null && p.aadt_heavy != null && p.aadt_2way_heavy !== p.aadt_heavy);
   return {
     car: p.aadt_2way_car ?? p.aadt_car ?? null,
     heavy: p.aadt_2way_heavy ?? p.aadt_heavy ?? null,

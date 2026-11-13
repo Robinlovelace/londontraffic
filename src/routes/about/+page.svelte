@@ -10,7 +10,7 @@
 <div class="min-h-screen bg-gray-50 px-6 py-6">
   <div class="mx-auto max-w-3xl space-y-4">
     <div class="space-y-1">
-      {#if SCOPE === 'national'}<a href="{base}/" class="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline">← All regions</a>{/if}
+      <a href="{base}/" class="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline">{SCOPE === 'national' ? '← All regions' : '← Back to map'}</a>
       <h1 class="text-2xl font-bold text-gray-900">About these estimates</h1>
     </div>
 
@@ -29,7 +29,7 @@
       <div>
         <h2 class="text-base font-semibold text-gray-900">What the numbers mean</h2>
         <ul class="mt-1.5 list-disc space-y-1 pl-5">
-          <li>Values are <strong>modelled estimates of vehicles per day</strong>, not observed counts. Popups show the two-way total; the map colours each carriageway separately.</li>
+          <li>Values are <strong>modelled estimates of Average Annual Daily Traffic (AADT)</strong>, not observed counts. Popups show the two-way total; the map colours each carriageway separately.</li>
           <li>Cars include cars, taxis and light vans assigned by the model. Heavy vehicles are HGVs, buses and coaches, bigger than vans.</li>
           <li>The colour ramp thresholds are mode-specific: heavy vehicle volumes are much lower than car volumes on most roads.</li>
         </ul>

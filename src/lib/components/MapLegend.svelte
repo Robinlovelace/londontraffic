@@ -6,21 +6,25 @@
   let { mode = "all" } = $props<{ mode?: string }>();
 
   const steps = $derived(AADT_STEPS[mode] ?? AADT_STEPS.car);
+  const modeLabel = $derived(mode === "heavy" ? "heavy vehicles" : mode === "car" ? "cars" : "all motor traffic");
 </script>
 
-<div class="pointer-events-none absolute bottom-16 left-2 z-10 max-w-[16rem] rounded-lg bg-white/95 p-2.5 shadow-lg ring-1 ring-gray-200" data-testid="map-legend">
-  <p class="text-[10px] font-bold uppercase tracking-wide text-gray-500">Vehicles per day</p>
+<!-- Sits above the basemap switcher (bottom-12 h-9). -->
+<div class="pointer-events-none absolute bottom-[5.5rem] left-2 z-10 max-w-[16rem] rounded-lg bg-white/95 p-2.5 shadow-lg ring-1 ring-gray-200" data-testid="map-legend">
+  <p class="text-[10px] font-bold uppercase tracking-wide text-gray-500">Average Annual Daily Traffic (AADT)</p>
   <div class="mt-1 flex overflow-hidden rounded">
     {#each Array(steps.length + 1) as _, i (i)}
       <div class="h-2.5 flex-1" style={`background:${AADT_COLORS[i]}`}></div>
     {/each}
   </div>
+  <!-- 6 swatches have 7 edges; the last bin is unbounded. -->
   <div class="mt-0.5 flex justify-between text-[9px] text-gray-500">
     <span>0</span>
     {#each steps as s (s)}<span>{s.toLocaleString()}</span>{/each}
+    <span>+</span>
   </div>
-  <p class="mt-1.5 border-t border-gray-100 pt-1 text-[9px] text-gray-400">
+  <p class="mt-1.5 border-t border-gray-100 pt-1 text-[9px] text-gray-500">
     <span class="mr-1 inline-block h-2 w-2 align-middle rounded-sm" style={`background:${AADT_ZERO_COLOR}`}></span>
-    no or negligible flow &middot; estimates per carriageway
+    no or negligible flow &middot; veh/day, {modeLabel} &middot; per carriageway
   </p>
 </div>
