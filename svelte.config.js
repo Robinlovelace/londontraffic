@@ -16,7 +16,8 @@ const config = {
 		adapter: adapter({
 			pages: BUILD_DIR,
 			assets: BUILD_DIR,
-			fallback: `${BUILD_DIR}/index.html`
+			// Resolved relative to the pages dir: lands at ${BUILD_DIR}/index.html.
+			fallback: 'index.html'
 		}),
 		paths: {
 			// Set BASE_PATH=/app when building for deployment under the report
