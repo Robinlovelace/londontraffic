@@ -18,7 +18,11 @@ export default defineConfig(() => {
 		define: {
 			__RELEASE_TAG__: JSON.stringify(
 				process.env.RELEASE_TAG || new Date().toISOString().split('T')[0]
-			)
+			),
+			// Build scope (london|national) set by npm run build:london/national.
+			// Defined explicitly because import.meta.env inlining did not pick the
+			// process-env PUBLIC_ var up reliably through the nested npm scripts.
+			'import.meta.env.PUBLIC_SCOPE': JSON.stringify(process.env.PUBLIC_SCOPE || 'national')
 		},
 		plugins: [
 			tailwindcss(),
