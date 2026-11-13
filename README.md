@@ -49,10 +49,11 @@ npm run check              # svelte-check
 
 One command per site: `scripts/deploy.sh london|national` syncs the data
 scope, bakes the SHA-256 of the basic-auth credentials into
-`netlify/edge-lib/auth_hash.ts` (gitignored), sets the site's
-`BASIC_AUTH_CREDENTIALS` env var, builds, and deploys. Both sites are behind
-basic auth; credentials live in `~/.config/londontraffic/auth-<scope>` (one
-line, `user:pass`, chmod 600).
+`netlify/edge-lib/auth_hash.ts` (gitignored), builds, and deploys. Both sites
+are behind basic auth (password only, blank username); credentials live in
+`~/.config/londontraffic/auth-<scope>` (one line, `user:pass`, chmod 600).
+Netlify env vars are not used: on this account `env:set` applies variables to
+all sites, so per-site credentials cannot live there.
 
 `static/data/` (gitignored) is populated per scope by `scripts/sync_data.py`,
 which hardlinks region directories out of the tile store and prunes
