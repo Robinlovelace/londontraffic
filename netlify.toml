@@ -1,0 +1,11 @@
+# Netlify configuration for londontraffic.
+# No auth: the served layer carries only modelled car and heavy vehicle AADT
+# from open sources (OSM, OS Open Roads, DfT counts).
+
+[build]
+  publish = "build"
+
+[[headers]]
+  for = "/data/*/tiles/*.pmtiles"
+  [headers.values]
+    Cache-Control = "public, max-age=3600"

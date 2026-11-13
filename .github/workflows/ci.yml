@@ -1,0 +1,26 @@
+name: ci
+on: [push, pull_request]
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: npm ci
+      - run: npm run check
+      - run: node node_modules/vite/bin/vite.js build
+      - name: Edge function fails closed
+        run: |
+          grep -q "fail closed" netlify/edge-functions/basic-auth.ts
+      # The Playwright suites need a csis publish fixture (a clip under 5 MB at tests/fixtures/).
+      # Until one is committed the suites run from scripts/deploy.sh on the workstation.
+      - name: Playwright suites on the fixture
+        if: hashFiles('tests/fixtures/**') != ''
+        run: |
+          pip install playwright duckdb && playwright install --with-deps chromium
+          node node_modules/vite/bin/vite.js preview --port 4183 --host 127.0.0.1 &
+          sleep 5
+          for s in suite suite2 suite3; do PYTHONPATH=scripts/checks python scripts/checks/$s.py http://127.0.0.1:4183; done

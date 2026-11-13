@@ -1,0 +1,11 @@
+@import "tailwindcss";
+
+/* Ensure the map container has height */
+:root, body, #svelte {
+  height: 100%;
+}
+
+.map-container {
+  height: 100%;
+  width: 100%;
+}
