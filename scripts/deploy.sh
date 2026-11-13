@@ -19,6 +19,15 @@ case "$SCOPE" in
   *) echo "usage: $0 london|national" >&2; exit 1 ;;
 esac
 
+# Serialise the whole pipeline: svelte-kit stages builds through the shared
+# .svelte-kit/output dir, and the edge bundle snapshots the shared auth-hash
+# file, so two concurrent deploys would corrupt each other. Two flock'd
+# invocations queue instead of racing; second one typically reuses unchanged
+# hashes, so its upload is fast.
+exec 9>netlify/.deploy.lock
+flock 9
+trap 'rm -f netlify/.deploy.lock' EXIT
+
 AUTH_FILE="${AUTH_FILE:-$HOME/.config/londontraffic/auth-$SCOPE}"
 [ -s "$AUTH_FILE" ] || { echo "auth file missing or empty: $AUTH_FILE" >&2; exit 1; }
 chmod 600 "$AUTH_FILE" 2>/dev/null || true
@@ -29,20 +38,13 @@ export PATH="$PATH:$HOME/.bun/bin"
 # BOTH sites (team-scoped), which cannot carry per-site credentials. The edge
 # function fails closed when the hash is absent.
 
-# Per-scope build dir so london and national builds can run in parallel.
+# Per-scope build dir (also parallel-safe on its own).
 BUILD_DIR="build-$SCOPE"
 rm -rf "$BUILD_DIR"
 BUILD_DIR="$BUILD_DIR" npm run "build:$SCOPE"
 
-# The auth hash file is SHARED between the two deploys and the edge bundle is
-# snapshotted at deploy time, so the (hash write + deploy) phase must not
-# overlap between concurrent london/national deploys. Builds above stay
-# parallel; this critical section serialises them.
-exec 9>netlify/.deploy.lock
-flock 9
 CREDENTIALS="$(tr -d '\r\n' < "$AUTH_FILE")"
 HASH="$(printf %s "$CREDENTIALS" | sha256sum | cut -d' ' -f1)"
 mkdir -p netlify/edge-lib
 printf 'export const AUTH_HASH = "%s";\n' "$HASH" > netlify/edge-lib/auth_hash.ts
 netlify deploy --site "$SITE_ID" --dir "$BUILD_DIR" --prod --no-build --timeout 1800
-rm -f netlify/.deploy.lock
