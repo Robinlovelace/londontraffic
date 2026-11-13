@@ -10,6 +10,7 @@
   import { base } from "$app/paths";
   import { getRegionTilesBaseUrl } from "$lib/api";
   import { MODE_ALIASES, type Manifest } from "$lib/contract";
+  import { SCOPE } from "$lib/scope";
 
   let { regionId, regionName, initialCenter = [-0.1276, 51.5072], initialZoom = 11, tileVersion, regionBounds = null, manifest } = $props<{ regionId: string; regionName: string; initialCenter?: [number, number]; initialZoom?: number; tileVersion?: string; regionBounds?: [[number, number], [number, number]] | null; manifest: Manifest }>();
 
@@ -61,7 +62,11 @@
       <div class="flex-1 space-y-6">
         <div class="space-y-1">
           <div class="flex items-center justify-between gap-2 text-sm">
-            <a href="{base}/" class="font-medium text-blue-600 hover:text-blue-800 hover:underline whitespace-nowrap">← All regions</a>
+            {#if SCOPE === "national"}
+              <a href="{base}/" class="font-medium text-blue-600 hover:text-blue-800 hover:underline whitespace-nowrap">← All regions</a>
+            {:else}
+              <span class="text-xs text-gray-400">Modelled traffic estimates</span>
+            {/if}
             <div class="flex items-center gap-1.5">
               <button type="button" onclick={copyLink} title="Copy link to this view" aria-label="Copy link to this view" data-testid="copy-link" class="inline-flex items-center rounded-md border border-gray-300 bg-white px-2 py-1 text-gray-600 hover:border-blue-300 hover:text-blue-600">
                 {#if copied}<span class="text-green-600 text-xs">✓</span>{:else}<Link size={14} />{/if}

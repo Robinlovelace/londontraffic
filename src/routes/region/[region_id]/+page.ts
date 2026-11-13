@@ -1,8 +1,16 @@
 import type { PageLoad } from './$types';
-import { error } from '@sveltejs/kit';
+import { error, redirect } from '@sveltejs/kit';
+import { base } from '$app/paths';
 import { getRegions, getRegionManifest, displayName } from '$lib/api';
+import { SCOPE } from '$lib/scope';
 
 export const load: PageLoad = async ({ fetch, params }) => {
+  // Single-page London deployment: the map lives at '/', so /region/<id>
+  // just hands over to it.
+  if (SCOPE === 'london') {
+    redirect(307, `${base}/`);
+  }
+
   try {
     const [regions, manifest] = await Promise.all([
       getRegions(fetch),
