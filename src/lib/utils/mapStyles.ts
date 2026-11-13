@@ -22,12 +22,13 @@ export const getAadtValueExpression = (m: string): any =>
 export const getAADTColorExpression = (m: string): any => {
   const val = getAadtValueExpression(m);
   const steps = AADT_STEPS[m] ?? AADT_STEPS.car;
-  // Highest step first, so the largest breaks win the case expression.
+  // Case evaluates in order: test the highest break first. Above the highest
+  // step gets the darkest colour; the fallback (0 < val <= first step) is green.
   const out: any[] = ["case", ["<=", val, 0], AADT_ZERO_COLOR];
   for (let i = steps.length - 1; i >= 0; i--) {
-    out.push([">", val, steps[i]], AADT_COLORS[steps.length - 1 - i]);
+    out.push([">", val, steps[i]], AADT_COLORS[i + 1]);
   }
-  out.push(AADT_COLORS[AADT_COLORS.length - 1]);
+  out.push(AADT_COLORS[0]);
   return out;
 };
 

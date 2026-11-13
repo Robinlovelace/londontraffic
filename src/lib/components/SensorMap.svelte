@@ -72,6 +72,8 @@
     else showGeoMessage("Your location could not be determined.");
   }
 
+  // Test hook: lets browser checks query rendered features.
+  $effect(() => { if (map && typeof window !== "undefined") (window as any).__ltMap = map; });
   function handleMoveEnd() { if (!map) return; const b = map.getBounds(), c = map.getCenter(), z = map.getZoom(); onBoundsChange?.(b, [c.lng, c.lat], z); }
   function handleZoom() { if (map) currentZoom = map.getZoom(); }
   function handleClick() { if (!layerClickHandled) clickedFeature = undefined; layerClickHandled = false; }
