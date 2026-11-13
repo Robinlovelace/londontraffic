@@ -5,3 +5,4 @@ static/data/
 .netlify/
 __pycache__/
 .cache/
+netlify/edge-lib/auth_hash.ts
