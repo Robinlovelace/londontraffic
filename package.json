@@ -5,6 +5,9 @@
   "private": true,
   "scripts": {
     "dev": "vite dev",
+    "sync:data": "python3 scripts/sync_data.py",
+    "build:london": "python3 scripts/sync_data.py london && npm run build",
+    "build:national": "python3 scripts/sync_data.py national && npm run build",
     "build": "npm run check && vite build",
     "preview": "vite preview",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",

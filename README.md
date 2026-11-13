@@ -1,13 +1,17 @@
 # londontraffic
 
-National modelled traffic estimates for England served as a web map:
-**average annual daily traffic (AADT) for cars and heavy vehicles only**, on
-every motor road link, split by Government Office Region. Live at
-[londontrafficdemo.netlify.app](https://londontrafficdemo.netlify.app).
+Modelled traffic estimates (average annual daily traffic, AADT) for **cars and
+heavy vehicles only**, on every motor road link, served as a web map. Two
+deployments of this one app:
+
+| Site | Scope | URL |
+|---|---|---|
+| London (the app) | `gor_london` only | [londontrafficdemo.netlify.app](https://londontrafficdemo.netlify.app) |
+| National (all outputs) | all 9 Government Office Regions | [nationaltrafficdemo.netlify.app](https://nationaltrafficdemo.netlify.app) |
 
 The estimates come from the CSIS pipeline (netweld + osmactive + calibrated
 routing assignment) in [Robinlovelace/csis](https://github.com/Robinlovelace/csis),
-build `a5b18dd` (9-GOR England-wide, netassign `79b9993`). This app is a
+9-GOR England-wide build `a5b18dd` (netassign `79b9993`). This app is a
 slimmed-down subset of the [csis-dashboard](https://github.com/Robinlovelace/csis-dashboard)
 codebase (itself a counterflow fork): the same SvelteKit + MapLibre + PMTiles
 stack and data contract (v0.3), with everything except the traffic-prediction
@@ -16,14 +20,15 @@ or basic-auth edge function.
 
 ## Data
 
-`static/data/` (gitignored) holds one region directory per GOR, built by the
-script recorded in `scripts/build_tiles.sh` on the `tr` machine from
-`csis/out/pipeline/gor_*/publish/gor_*/links.parquet`:
+The tile store (2 GB, all 9 regions) lives **outside the repo** at
+`/home/robin/github-data/londontraffic-data` (override with
+`LONDONTRAFFIC_DATA`). It was built on the `tr` machine by the script recorded
+in `scripts/build_tiles.sh` from
+`csis/out/pipeline/gor_*/publish/gor_*/links.parquet`. Each region holds:
 
-- `data/index.json` - the 9 GOR regions with bbox
-- `data/<region>/manifest.json` - contract 0.3 manifest, links layer only
-- `data/<region>/tiles/links.pmtiles` - vector tiles (zooms 8-16) carrying
-  only `road_name`, `road_class`, `road_ref`, `length_m`, `aadt_car`,
+- `manifest.json` - contract 0.3 manifest, links layer only
+- `tiles/links.pmtiles` - vector tiles (zooms 8-16) carrying only
+  `road_name`, `road_class`, `road_ref`, `length_m`, `aadt_car`,
   `aadt_2way_car`, `aadt_hgv`, `aadt_2way_hgv`, `aadt_heavy`,
   `aadt_2way_heavy`
 
@@ -35,20 +40,32 @@ subset.
 
 ```bash
 npm install
-npm run dev            # expects static/data to exist (see Data above)
-npm run check          # svelte-check
-npm run build          # checks + vite build -> build/
+npm run sync:data london   # hardlink the London tiles into static/data
+npm run dev
+npm run check              # svelte-check
 ```
 
-## Deploy
+## Build and deploy
 
-Site: `londontrafficdemo` on Netlify (created with the netlify CLI; no auth).
+`static/data/` (gitignored) is populated per scope by `scripts/sync_data.py`,
+which hardlinks region directories out of the tile store and prunes
+`index.json` to the scope's regions:
 
 ```bash
-npm run build
-netlify deploy --site londontrafficdemo --dir build           # draft
-netlify deploy --site londontrafficdemo --dir build --prod    # production
+npm run build:london    # London-only build -> build/
+npm run build:national  # all-9-region build -> build/
 ```
 
-The `.pmtiles` files need HTTP range-request serving, which Netlify does by
+Deploy the matching site (site ids in Netlify; both created with the netlify
+CLI, no auth):
+
+```bash
+# London site (e9aae024-5803-4555-99e7-cb86f010160f), ~110 MB upload
+netlify deploy --site e9aae024-5803-4555-99e7-cb86f010160f --dir build --prod --no-build
+
+# National site (991ba7c8-8179-45b8-8d82-4a4a054bf60a), ~2 GB upload
+netlify deploy --site 991ba7c8-8179-45b8-8d82-4a4a054bf60a --dir build --prod --no-build
+```
+
+`.pmtiles` files need HTTP range-request serving, which Netlify does by
 default; `netlify.toml` adds a 1-hour cache header for them.
