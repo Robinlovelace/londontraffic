@@ -48,10 +48,16 @@ npm run check              # svelte-check
 ## Build and deploy
 
 One command per site: `scripts/deploy.sh london|national` syncs the data
-scope, bakes the SHA-256 of the basic-auth credentials into
-`netlify/edge-lib/auth_hash.ts` (gitignored), builds, and deploys. Both sites
+scope, validates the credential file before building (it must contain a `:`,
+password-only convention e.g. `:secret`), bakes the SHA-256 of the credentials
+into `netlify/edge-lib/auth_hash.ts` (gitignored, removed again on exit),
+builds, and deploys. The whole pipeline is serialised with `flock`: SvelteKit
+stages builds through a shared `.svelte-kit/output` and the edge bundle
+snapshots the shared hash file, so concurrent deploys queue instead of racing
+(never unlink the lockfile - that breaks the serialisation). Both sites
 are behind basic auth (password only, blank username); credentials live in
-`~/.config/londontraffic/auth-<scope>` (one line, `user:pass`, chmod 600).
+`~/.config/londontraffic/auth-<scope>` (one line, password-only with a
+leading colon, chmod 600).
 Netlify env vars are not used: on this account `env:set` applies variables to
 all sites, so per-site credentials cannot live there.
 
