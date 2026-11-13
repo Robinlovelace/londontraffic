@@ -35,6 +35,9 @@ export PATH="$PATH:$HOME/.bun/bin"
 # (team-scoped), which cannot carry per-site credentials. The edge function
 # fails closed when the hash is absent.
 
-npm run "build:$SCOPE"
+# Per-scope build dir so london and national deploys can run in parallel.
+BUILD_DIR="build-$SCOPE"
+rm -rf "$BUILD_DIR"
+BUILD_DIR="$BUILD_DIR" npm run "build:$SCOPE"
 
-netlify deploy --site "$SITE_ID" --dir build --prod --no-build --timeout 1800
+netlify deploy --site "$SITE_ID" --dir "$BUILD_DIR" --prod --no-build --timeout 1800

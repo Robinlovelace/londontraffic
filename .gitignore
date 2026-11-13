@@ -1,6 +1,8 @@
 node_modules/
 .svelte-kit/
 build/
+build-london/
+build-national/
 static/data/
 .netlify/
 __pycache__/
